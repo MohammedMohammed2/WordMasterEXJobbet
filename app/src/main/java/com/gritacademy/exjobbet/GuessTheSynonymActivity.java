@@ -60,6 +60,7 @@ public class GuessTheSynonymActivity extends AppCompatActivity {
 
         // Set listener for Next Question button
         nextQuestionButton.setOnClickListener(v -> loadNextQuestion());
+
     }
 
     private void fetchFlashcards() {
@@ -172,6 +173,7 @@ public class GuessTheSynonymActivity extends AppCompatActivity {
         answeredCorrectly = false;
     }
 
+
     // Update the checkAnswer method to automatically move to the next question
     private void checkAnswer(String selectedAnswer) {
         Log.d("Game", "Selected answer: " + selectedAnswer);
@@ -185,7 +187,6 @@ public class GuessTheSynonymActivity extends AppCompatActivity {
             Toast.makeText(this, "Wrong! Point is lost", Toast.LENGTH_SHORT).show();
             score--;
         }
-
         // Update the score
         scoreTextView.setText("Score: " + score);
 
@@ -193,13 +194,19 @@ public class GuessTheSynonymActivity extends AppCompatActivity {
         nextQuestionButton.setOnClickListener(v -> {
             if (!answeredCorrectly) {
                 // If the player didn't answer correctly, lose a point
-                score--;
                 Toast.makeText(this, "You lost a point! Moving to next question.", Toast.LENGTH_SHORT).show();
+                score--;
+                scoreTextView.setText("Score: " + score);
             }
             // Always move to the next question
             loadNextQuestion();
         });
+
+
+
     }
+
+
 
 }
 
