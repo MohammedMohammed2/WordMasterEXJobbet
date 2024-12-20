@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "360776107383",
+    "project_id": "android-app-47b19",
+    "storage_bucket": "android-app-47b19.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:360776107383:android:3fe8c1bc7e2a24d3200d72",
+        "android_client_info": {
+          "package_name": "com.gritacademy.exjobbet"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBVm8zP4zIWhMxu7-b5fESaa_KSXYT-yZM"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

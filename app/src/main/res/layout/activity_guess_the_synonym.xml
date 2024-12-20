@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="16dp"
+    tools:context=".GuessTheSynonymActivity">
+
+    <!-- Word to Guess -->
+    <TextView
+        android:id="@+id/wordTextView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="32dp"
+        android:layout_gravity="center_horizontal"
+        android:text="Word"
+        android:textSize="24sp"
+        android:textStyle="bold" />
+
+    <!-- Score Display -->
+    <TextView
+        android:id="@+id/scoreTextView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:layout_gravity="center_horizontal"
+        android:text="Score: 0"
+        android:textSize="18sp" />
+
+    <!-- Option Buttons -->
+    <Button
+        android:id="@+id/option1Button"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:text="Option 1" />
+
+    <Button
+        android:id="@+id/option2Button"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:text="Option 2" />
+
+    <Button
+        android:id="@+id/option3Button"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:text="Option 3" />
+
+    <Button
+        android:id="@+id/option4Button"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:text="Option 4" />
+
+    <!-- Next Question Button -->
+    <Button
+        android:id="@+id/nextQuestionButton"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:text="Next Question" />
+</LinearLayout>

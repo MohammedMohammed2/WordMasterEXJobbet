@@ -1,0 +1,21 @@
+package com.gritacademy.exjobbet;
+
+public class User {
+    private String username;
+
+    public User() {
+        // Default constructor required for Firestore serialization
+    }
+
+    public User(String username) {
+        this.username = username;
+    }
+
+    public String getUsername() {
+        return username;
+    }
+
+    public void setUsername(String username) {
+        this.username = username;
+    }
+}
