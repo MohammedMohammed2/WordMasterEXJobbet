@@ -15,6 +15,9 @@
         android:theme="@style/Theme.AppCompat.Light.DarkActionBar"
         tools:targetApi="31">
         <activity
+            android:name=".LeaderBoardActivity"
+            android:exported="false" />
+        <activity
             android:name=".GuessTheSynonymActivity"
             android:exported="false" />
         <activity

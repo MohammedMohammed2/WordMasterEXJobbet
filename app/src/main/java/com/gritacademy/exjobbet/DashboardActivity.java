@@ -137,8 +137,7 @@ public class DashboardActivity extends AppCompatActivity implements NavigationVi
 
     private void navigateToLeaderboard() {
         Toast.makeText(this, "Navigating to Leaderboard...", Toast.LENGTH_SHORT).show();
-        // Uncomment and add your logic to navigate to the leaderboard screen
-        // startActivity(new Intent(DashboardActivity.this, LeaderboardActivity.class));
+         startActivity(new Intent(DashboardActivity.this, LeaderBoardActivity.class));
     }
 
     private void navigateToGameModes() {
