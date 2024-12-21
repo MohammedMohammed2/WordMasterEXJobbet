@@ -1,7 +1,6 @@
 package com.gritacademy.exjobbet;
 
 import android.os.Bundle;
-import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -9,19 +8,23 @@ import android.util.Log;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QuerySnapshot;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Random;
 
 public class GuessTheSynonymActivity extends AppCompatActivity {
 
     private TextView wordTextView;
-    private Button option1Button, option2Button, option3Button, option4Button, nextQuestionButton;
+    private Button option1Button, option2Button, option3Button, option4Button, nextQuestionButton, giveUpButton;
     private TextView scoreTextView;
 
     private int score = 0;
@@ -46,8 +49,8 @@ public class GuessTheSynonymActivity extends AppCompatActivity {
         option3Button = findViewById(R.id.option3Button);
         option4Button = findViewById(R.id.option4Button);
         nextQuestionButton = findViewById(R.id.nextQuestionButton);
+        giveUpButton = findViewById(R.id.giveUpButton); // Initialize Give Up button
         scoreTextView = findViewById(R.id.scoreTextView);
-
 
         // Fetch words from Firestore
         fetchFlashcards();
@@ -61,6 +64,86 @@ public class GuessTheSynonymActivity extends AppCompatActivity {
         // Set listener for Next Question button
         nextQuestionButton.setOnClickListener(v -> loadNextQuestion());
 
+        // Set listener for Give Up button
+        // Set listener for Give Up button
+        giveUpButton.setOnClickListener(v -> {
+            // Show the "Returning to Game Modes..." message
+            Toast.makeText(this, "Returning to Game Modes...", Toast.LENGTH_SHORT).show();
+
+            // Get the current user's UID from FirebaseAuth
+            FirebaseAuth auth = FirebaseAuth.getInstance();
+            String uid = auth.getCurrentUser().getUid();
+
+            // Fetch the username from Firestore
+            FirebaseFirestore db = FirebaseFirestore.getInstance();
+            db.collection("users").document(uid)
+                    .get()
+                    .addOnCompleteListener(task -> {
+                        if (task.isSuccessful()) {
+                            DocumentSnapshot userDocument = task.getResult();
+                            if (userDocument.exists()) {
+                                String username = userDocument.getString("username");
+
+                                // Create a new leaderboard entry with timestamp, score, and username
+                                long timestamp = System.currentTimeMillis();  // Get the current timestamp
+                                saveLeaderboardEntry(uid, username, timestamp, score);
+
+                            } else {
+                                Log.e("Firestore", "No user found with UID: " + uid);
+                            }
+                        } else {
+                            Log.e("Firestore", "Error getting username: ", task.getException());
+                        }
+                    });
+
+            finish();
+        });
+
+    }
+    private void saveLeaderboardEntry(String uid, String username, long timestamp, int score) {
+        FirebaseFirestore db = FirebaseFirestore.getInstance();
+
+        // Prepare the leaderboard entry
+        Map<String, Object> leaderboardEntry = new HashMap<>();
+        leaderboardEntry.put("username", username);
+        leaderboardEntry.put("score", score);
+
+        // First, try to set the document if it's new, without the timestamp
+        db.collection("leaderboard")
+                .document(uid)
+                .get() // Check if the document already exists
+                .addOnCompleteListener(task -> {
+                    if (task.isSuccessful()) {
+                        DocumentSnapshot documentSnapshot = task.getResult();
+                        if (documentSnapshot.exists()) {
+                            // Document already exists, so we update the timestamp
+                            leaderboardEntry.put("timestamp", FieldValue.serverTimestamp());
+                            db.collection("leaderboard")
+                                    .document(uid)
+                                    .update(leaderboardEntry)
+                                    .addOnSuccessListener(aVoid -> {
+                                        Log.d("Firestore", "Leaderboard entry updated successfully for UID: " + uid);
+                                    })
+                                    .addOnFailureListener(e -> {
+                                        Log.e("Firestore", "Error updating leaderboard entry: ", e);
+                                    });
+                        } else {
+                            // Document doesn't exist, so create a new document without timestamp
+                            leaderboardEntry.put("timestamp", FieldValue.serverTimestamp()); // Add timestamp only when creating
+                            db.collection("leaderboard")
+                                    .document(uid)
+                                    .set(leaderboardEntry)
+                                    .addOnSuccessListener(aVoid -> {
+                                        Log.d("Firestore", "Leaderboard entry saved successfully for UID: " + uid);
+                                    })
+                                    .addOnFailureListener(e -> {
+                                        Log.e("Firestore", "Error saving leaderboard entry: ", e);
+                                    });
+                        }
+                    } else {
+                        Log.e("Firestore", "Error checking for document existence: ", task.getException());
+                    }
+                });
     }
 
     private void fetchFlashcards() {
@@ -71,12 +154,10 @@ public class GuessTheSynonymActivity extends AppCompatActivity {
                     if (task.isSuccessful()) {
                         QuerySnapshot querySnapshot = task.getResult();
                         if (querySnapshot != null && !querySnapshot.isEmpty()) {
-                            // Log the number of documents and details for each document
                             for (DocumentSnapshot doc : querySnapshot.getDocuments()) {
                                 Log.d("Firestore", "Fetched document: " + doc.getId());
                                 Log.d("Firestore", "Word: " + doc.getString("word"));
 
-                                // Get synonyms field as an Object and cast it to a List
                                 Object synonymsObj = doc.get("synonyms");
 
                                 if (synonymsObj instanceof List) {
@@ -90,8 +171,7 @@ public class GuessTheSynonymActivity extends AppCompatActivity {
                             wordDocuments.addAll(querySnapshot.getDocuments());
                             Log.d("Firestore", "Documents fetched successfully. Total docs: " + querySnapshot.size());
 
-                            // Ensure UI updates happen on the main thread
-                            runOnUiThread(() -> loadNextQuestion());  // Load the first question on the UI thread
+                            runOnUiThread(() -> loadNextQuestion());
                         } else {
                             Log.e("Firestore", "No flashcards found!");
                             Toast.makeText(this, "No flashcards found!", Toast.LENGTH_SHORT).show();
@@ -103,7 +183,7 @@ public class GuessTheSynonymActivity extends AppCompatActivity {
                 });
     }
 
-    private boolean answeredCorrectly = false; // Track if the player answered correctly
+    private boolean answeredCorrectly = false;
 
     private void loadNextQuestion() {
         if (wordDocuments.isEmpty()) {
@@ -112,14 +192,11 @@ public class GuessTheSynonymActivity extends AppCompatActivity {
             return;
         }
 
-        // Select a random document (word)
         Random random = new Random();
         DocumentSnapshot document = wordDocuments.get(random.nextInt(wordDocuments.size()));
 
-        // Extract the word and synonyms
         String word = document.getString("word");
 
-        // Get the synonyms, if available
         Object synonymsObj = document.get("synonyms");
         List<String> synonyms = null;
 
@@ -132,35 +209,37 @@ public class GuessTheSynonymActivity extends AppCompatActivity {
 
         if (word == null || synonyms == null || synonyms.isEmpty()) {
             Log.e("DataError", "Missing or invalid 'synonyms' for word: " + word);
-            return;  // Skip this question if synonyms are missing or malformed
+            return;
         }
 
-        // Select the first synonym as the correct answer
         correctAnswer = synonyms.get(0);
 
         Log.d("Game", "Word: " + word + ", Correct Answer: " + correctAnswer);
 
-        // Generate incorrect options from other words' synonyms
         List<String> incorrectOptions = new ArrayList<>();
 
+        // Collect incorrect options from other words (not the current word)
         while (incorrectOptions.size() < 3) {
             DocumentSnapshot randomDoc = wordDocuments.get(random.nextInt(wordDocuments.size()));
-            List<String> randomSynonyms = (List<String>) randomDoc.get("synonyms");
+            String randomWord = randomDoc.getString("word");
 
-            if (randomSynonyms != null && !randomSynonyms.isEmpty()) {
-                String randomSynonym = randomSynonyms.get(0);  // Get the first synonym
-                if (!randomSynonym.equals(correctAnswer) && !incorrectOptions.contains(randomSynonym)) {
-                    incorrectOptions.add(randomSynonym);
+            if (!randomWord.equals(word)) {  // Ensure we're not picking synonyms of the same word
+                List<String> randomSynonyms = (List<String>) randomDoc.get("synonyms");
+
+                if (randomSynonyms != null && !randomSynonyms.isEmpty()) {
+                    String randomSynonym = randomSynonyms.get(0);
+                    if (!randomSynonym.equals(correctAnswer) && !incorrectOptions.contains(randomSynonym)) {
+                        incorrectOptions.add(randomSynonym);
+                    }
                 }
             }
         }
 
-        // Combine correct and incorrect options, shuffle them
+        // Add the correct answer to the options
         List<String> options = new ArrayList<>(incorrectOptions);
         options.add(correctAnswer);
         Collections.shuffle(options);
 
-        // Update UI
         wordTextView.setText(word);
         option1Button.setText(options.get(0));
         option2Button.setText(options.get(1));
@@ -169,45 +248,34 @@ public class GuessTheSynonymActivity extends AppCompatActivity {
 
         Log.d("Game", "Options: " + options);
 
-        // Reset the "answeredCorrectly" flag for the next question
         answeredCorrectly = false;
     }
 
 
-    // Update the checkAnswer method to automatically move to the next question
     private void checkAnswer(String selectedAnswer) {
         Log.d("Game", "Selected answer: " + selectedAnswer);
         if (selectedAnswer.equals(correctAnswer)) {
             score++;
-            answeredCorrectly = true; // Player answered correctly
+            answeredCorrectly = true;
             Toast.makeText(this, "Correct!", Toast.LENGTH_SHORT).show();
-            // Automatically load the next question
             loadNextQuestion();
         } else {
             Toast.makeText(this, "Wrong! Point is lost", Toast.LENGTH_SHORT).show();
             score--;
         }
-        // Update the score
         scoreTextView.setText("Score: " + score);
 
-        // Set listener for Next Question button
         nextQuestionButton.setOnClickListener(v -> {
             if (!answeredCorrectly) {
-                // If the player didn't answer correctly, lose a point
                 Toast.makeText(this, "You lost a point! Moving to next question.", Toast.LENGTH_SHORT).show();
                 score--;
                 scoreTextView.setText("Score: " + score);
             }
-            // Always move to the next question
             loadNextQuestion();
         });
-
-
-
     }
-
-
-
 }
+
+
 
 
