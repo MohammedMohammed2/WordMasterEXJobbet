@@ -96,11 +96,11 @@ public class LeaderBoardActivity extends AppCompatActivity {
     // Method to return different background color based on the score
     private int getCardBackgroundColor(Long score) {
         if (score >= 50) {
-            return getResources().getColor(android.R.color.holo_green_light); // Green for high scores
+            return getResources().getColor(android.R.color.holo_green_light);
         } else if (score >= 30) {
-            return getResources().getColor(android.R.color.holo_orange_light); // Orange for medium scores
+            return getResources().getColor(android.R.color.holo_orange_light);
         } else {
-            return getResources().getColor(android.R.color.holo_purple); // Red for low scores
+            return getResources().getColor(android.R.color.holo_purple);
         }
     }
 }

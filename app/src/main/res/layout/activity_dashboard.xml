@@ -8,65 +8,79 @@
     android:layout_height="match_parent"
     tools:context=".DashboardActivity">
 
-    <!-- Main Content -->
     <androidx.coordinatorlayout.widget.CoordinatorLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent">
 
         <RelativeLayout
             android:layout_width="match_parent"
-            android:layout_height="match_parent">
+            android:layout_height="match_parent"
+            android:padding="24dp">
 
             <TextView
                 android:id="@+id/welcomeTextView"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Welcome, User"
-                android:textSize="20sp"
-                android:layout_marginTop="30dp"
-                android:layout_centerHorizontal="true" />
+                android:textSize="28sp"
+                android:textStyle="bold"
+                android:layout_marginTop="40dp"
+                android:layout_centerHorizontal="true"
+                android:textColor="@color/colorPrimary" />
 
             <TextView
-                android:id="@+id/quizzesAnsweredTextView"
+                android:id="@+id/leaderboardScoreTextView"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Quizzes Answered: 0"
-                android:textSize="16sp"
+                android:text="Score: --"
+                android:textSize="18sp"
                 android:layout_below="@id/welcomeTextView"
                 android:layout_marginTop="20dp"
-                android:layout_centerHorizontal="true" />
+                android:layout_centerHorizontal="true"
+                android:textColor="@color/black" />
 
             <TextView
-                android:id="@+id/progressTextView"
+                android:id="@+id/totalWordsTextView"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Total Words in Flashcards: --"
+                android:textSize="16sp"
+                android:textColor="@color/black"
+                android:layout_below="@id/leaderboardScoreTextView"
+                android:layout_marginTop="20dp"
+                android:layout_centerHorizontal="true"/>
+
+            <com.google.android.material.progressindicator.LinearProgressIndicator
+                android:id="@+id/progressBar"
+                android:layout_width="match_parent"
+                android:layout_height="8dp"
+                app:indicatorColor="@color/colorPrimaryDark"
+                app:trackColor="@color/trackColor"
+                android:layout_below="@id/totalWordsTextView"
+                android:layout_marginTop="30dp"
+                android:layout_marginEnd="16dp"
+                android:layout_marginStart="16dp" />
+
+            <TextView
+                android:id="@+id/progressLabelTextView"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Progress: 0%"
                 android:textSize="16sp"
-                android:layout_below="@id/quizzesAnsweredTextView"
-                android:layout_marginTop="10dp"
-                android:layout_centerHorizontal="true" />
-
-            <com.google.android.material.progressindicator.CircularProgressIndicator
-                android:id="@+id/circularProgressBar"
-                android:layout_width="100dp"
-                android:layout_height="100dp"
-                android:layout_below="@id/progressTextView"
-                android:layout_centerHorizontal="true"
-                android:layout_marginTop="20dp"
-                app:indicatorSize="50dp"
-                app:trackThickness="6dp"
-                app:indicatorColor="@color/black"
-                app:trackColor="@android:color/darker_gray" />
+                android:textColor="@color/black"
+                android:layout_below="@id/progressBar"
+                android:layout_marginTop="12dp"
+                android:layout_centerHorizontal="true"/>
         </RelativeLayout>
     </androidx.coordinatorlayout.widget.CoordinatorLayout>
 
-    <!-- Navigation Drawer -->
     <com.google.android.material.navigation.NavigationView
         android:id="@+id/nav_view"
         android:layout_width="wrap_content"
         android:layout_height="match_parent"
         android:layout_gravity="start"
         app:headerLayout="@layout/nav_header"
-        app:menu="@menu/drawer_menu" />
+        app:menu="@menu/drawer_menu"
+        android:background="@color/colorDrawerBackground" />
 </androidx.drawerlayout.widget.DrawerLayout>
 

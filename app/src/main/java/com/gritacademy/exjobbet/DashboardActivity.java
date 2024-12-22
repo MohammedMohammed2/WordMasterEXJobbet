@@ -11,19 +11,19 @@ import androidx.appcompat.app.ActionBarDrawerToggle;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.drawerlayout.widget.DrawerLayout;
 
+import com.google.android.material.progressindicator.LinearProgressIndicator;
 import com.google.android.material.navigation.NavigationView;
-import com.google.android.material.progressindicator.CircularProgressIndicator;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.FirebaseFirestore;
-import com.gritacademy.exjobbet.flashcard.FlashcardGenerator;
+import com.google.firebase.firestore.QueryDocumentSnapshot;
 
 public class DashboardActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener {
 
     private FirebaseAuth mAuth;
     private FirebaseFirestore db;
-    private CircularProgressIndicator progressBar;
-    private TextView welcomeTextView, quizzesAnsweredTextView, progressTextView;
+    private TextView welcomeTextView, leaderboardScoreTextView, totalWordsTextView, progressLabelTextView;
+    private LinearProgressIndicator progressBar;
     private DrawerLayout drawerLayout;
     private ActionBarDrawerToggle drawerToggle;
 
@@ -34,26 +34,23 @@ public class DashboardActivity extends AppCompatActivity implements NavigationVi
 
         mAuth = FirebaseAuth.getInstance();
         db = FirebaseFirestore.getInstance();
-        FlashcardGenerator flashcardGenerator = new FlashcardGenerator();
-        flashcardGenerator.generateFlashcards();
 
         // Initialize UI components
         welcomeTextView = findViewById(R.id.welcomeTextView);
-        quizzesAnsweredTextView = findViewById(R.id.quizzesAnsweredTextView);
-        progressTextView = findViewById(R.id.progressTextView);
-        progressBar = findViewById(R.id.circularProgressBar);
+        leaderboardScoreTextView = findViewById(R.id.leaderboardScoreTextView);
+        totalWordsTextView = findViewById(R.id.totalWordsTextView);
+        progressBar = findViewById(R.id.progressBar);
+        progressLabelTextView = findViewById(R.id.progressLabelTextView);
 
         // Setup Navigation Drawer
         drawerLayout = findViewById(R.id.drawer_layout);
         NavigationView navigationView = findViewById(R.id.nav_view);
 
-        // Set up the drawer toggle for hamburger menu icon
         drawerToggle = new ActionBarDrawerToggle(this, drawerLayout, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
         drawerLayout.addDrawerListener(drawerToggle);
         drawerToggle.syncState();
-        getSupportActionBar().setDisplayHomeAsUpEnabled(true);  // Enable the hamburger icon
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
-        // Set the navigation item click listener
         navigationView.setNavigationItemSelectedListener(this);
 
         // Access header views
@@ -63,10 +60,10 @@ public class DashboardActivity extends AppCompatActivity implements NavigationVi
         // Get the current user and update UI
         FirebaseUser currentUser = mAuth.getCurrentUser();
         if (currentUser != null) {
-
-            // Set user details in the navigation drawer header
             headerEmail.setText(currentUser.getEmail());
             String userId = currentUser.getUid();
+
+            // Fetch username and display
             db.collection("users").document(userId)
                     .get()
                     .addOnSuccessListener(documentSnapshot -> {
@@ -83,36 +80,53 @@ public class DashboardActivity extends AppCompatActivity implements NavigationVi
                         headerUserName.setText("Error");
                     });
 
-            welcomeTextView.setText("Welcome, " + currentUser.getEmail());
-            loadUserStats(userId);
+            // Fetch and display user score from the leaderboard
+            loadUserScore(userId);
+            fetchTotalWordsAndUpdateProgress(userId);
         }
     }
 
-    private void loadUserStats(String userId) {
-        db.collection("userProgress").document(userId)
+    private void loadUserScore(String userId) {
+        db.collection("leaderboard").document(userId)
                 .get()
                 .addOnSuccessListener(documentSnapshot -> {
                     if (documentSnapshot.exists()) {
-                        String quizzesAnswered = documentSnapshot.getString("quizzesAnswered");
-                        String progress = documentSnapshot.getString("progress");
-
-                        quizzesAnsweredTextView.setText("Quizzes Answered: " + quizzesAnswered);
-                        progressTextView.setText("Progress: " + progress + "%");
-
-                        int progressValue = Integer.parseInt(progress);
-                        progressBar.setProgress(progressValue);
+                        Long score = documentSnapshot.getLong("score");
+                        if (score != null) {
+                            leaderboardScoreTextView.setText("Score: " + score);
+                        } else {
+                            leaderboardScoreTextView.setText("Score: --");
+                            Toast.makeText(DashboardActivity.this, "Score not available.", Toast.LENGTH_SHORT).show();
+                        }
+                    } else {
+                        leaderboardScoreTextView.setText("Score: --");
+                        Toast.makeText(DashboardActivity.this, "No leaderboard entry found.", Toast.LENGTH_SHORT).show();
                     }
                 })
-                .addOnFailureListener(e -> Toast.makeText(DashboardActivity.this, "Failed to load stats.", Toast.LENGTH_SHORT).show());
+                .addOnFailureListener(e -> Toast.makeText(DashboardActivity.this, "Failed to load leaderboard score.", Toast.LENGTH_SHORT).show());
     }
 
-    // Handle action bar item click (like opening and closing the drawer)
-    @Override
-    public boolean onOptionsItemSelected(@NonNull MenuItem item) {
-        if (drawerToggle.onOptionsItemSelected(item)) {
-            return true;
-        }
-        return super.onOptionsItemSelected(item);
+    private void fetchTotalWordsAndUpdateProgress(String userId) {
+        db.collection("flashcards").get()
+                .addOnSuccessListener(querySnapshot -> {
+                    int totalWords = querySnapshot.size();  // Get the total number of flashcards
+                    totalWordsTextView.setText("Total Words in Flashcards: " + totalWords);
+
+                    // Fetch user score and calculate progress
+                    db.collection("leaderboard").document(userId)
+                            .get()
+                            .addOnSuccessListener(documentSnapshot -> {
+                                if (documentSnapshot.exists()) {
+                                    Long score = documentSnapshot.getLong("score");
+                                    int progress = (int) ((score != null ? score : 0) * 100.0 / totalWords);
+                                    progressBar.setProgress(progress);
+                                    progressLabelTextView.setText("Progress: " + progress + "%");
+                                }
+                            });
+                })
+                .addOnFailureListener(e -> {
+                    Toast.makeText(DashboardActivity.this, "Failed to fetch words.", Toast.LENGTH_SHORT).show();
+                });
     }
 
     // Handle navigation item clicks
@@ -130,23 +144,19 @@ public class DashboardActivity extends AppCompatActivity implements NavigationVi
             logoutUser();
         }
 
-        // Close the drawer after the action
         drawerLayout.closeDrawers();
         return true;
     }
 
     private void navigateToLeaderboard() {
-        Toast.makeText(this, "Navigating to Leaderboard...", Toast.LENGTH_SHORT).show();
-         startActivity(new Intent(DashboardActivity.this, LeaderBoardActivity.class));
+        startActivity(new Intent(DashboardActivity.this, LeaderBoardActivity.class));
     }
 
     private void navigateToGameModes() {
-        Intent intent = new Intent(DashboardActivity.this, GameModesActivity.class);
-        startActivity(intent);
+        startActivity(new Intent(DashboardActivity.this, GameModesActivity.class));
     }
 
     private void navigateToProfile() {
-        Toast.makeText(this, "Navigating to Profile...", Toast.LENGTH_SHORT).show();
         // Uncomment and add your logic to navigate to the profile screen
         // startActivity(new Intent(DashboardActivity.this, ProfileActivity.class));
     }
@@ -155,5 +165,13 @@ public class DashboardActivity extends AppCompatActivity implements NavigationVi
         mAuth.signOut();
         startActivity(new Intent(DashboardActivity.this, MainActivity.class));
         finish();
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(@NonNull MenuItem item) {
+        if (drawerToggle.onOptionsItemSelected(item)) {
+            return true;
+        }
+        return super.onOptionsItemSelected(item);
     }
 }
