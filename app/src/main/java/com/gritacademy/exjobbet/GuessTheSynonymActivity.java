@@ -64,17 +64,14 @@ public class GuessTheSynonymActivity extends AppCompatActivity {
         // Set listener for Next Question button
         nextQuestionButton.setOnClickListener(v -> loadNextQuestion());
 
-        // Set listener for Give Up button
-        // Set listener for Give Up button
         giveUpButton.setOnClickListener(v -> {
-            // Show the "Returning to Game Modes..." message
             Toast.makeText(this, "Returning to Game Modes...", Toast.LENGTH_SHORT).show();
 
-            // Get the current user's UID from FirebaseAuth
             FirebaseAuth auth = FirebaseAuth.getInstance();
             String uid = auth.getCurrentUser().getUid();
 
-            // Fetch the username from Firestore
+            updateUserProgress(score);
+
             FirebaseFirestore db = FirebaseFirestore.getInstance();
             db.collection("users").document(uid)
                     .get()
@@ -83,11 +80,7 @@ public class GuessTheSynonymActivity extends AppCompatActivity {
                             DocumentSnapshot userDocument = task.getResult();
                             if (userDocument.exists()) {
                                 String username = userDocument.getString("username");
-
-                                // Create a new leaderboard entry with timestamp, score, and username
-                                long timestamp = System.currentTimeMillis();  // Get the current timestamp
-                                saveLeaderboardEntry(uid, username, timestamp, score);
-
+                                saveLeaderboardEntry(uid, username);
                             } else {
                                 Log.e("Firestore", "No user found with UID: " + uid);
                             }
@@ -98,53 +91,72 @@ public class GuessTheSynonymActivity extends AppCompatActivity {
 
             finish();
         });
-
     }
-    private void saveLeaderboardEntry(String uid, String username, long timestamp, int score) {
+
+    private void saveLeaderboardEntry(String uid, String username) {
         FirebaseFirestore db = FirebaseFirestore.getInstance();
 
-        // Prepare the leaderboard entry
-        Map<String, Object> leaderboardEntry = new HashMap<>();
-        leaderboardEntry.put("username", username);
-        leaderboardEntry.put("score", score);
-
-        // First, try to set the document if it's new, without the timestamp
-        db.collection("leaderboard")
-                .document(uid)
-                .get() // Check if the document already exists
+        // Fetch the user's best score from the userProgress collection
+        db.collection("userProgress").document(uid)
+                .get()
                 .addOnCompleteListener(task -> {
                     if (task.isSuccessful()) {
-                        DocumentSnapshot documentSnapshot = task.getResult();
-                        if (documentSnapshot.exists()) {
-                            // Document already exists, so we update the timestamp
-                            leaderboardEntry.put("timestamp", FieldValue.serverTimestamp());
-                            db.collection("leaderboard")
-                                    .document(uid)
-                                    .update(leaderboardEntry)
-                                    .addOnSuccessListener(aVoid -> {
-                                        Log.d("Firestore", "Leaderboard entry updated successfully for UID: " + uid);
-                                    })
-                                    .addOnFailureListener(e -> {
-                                        Log.e("Firestore", "Error updating leaderboard entry: ", e);
-                                    });
+                        DocumentSnapshot progressDocument = task.getResult();
+                        if (progressDocument.exists()) {
+                            // Get the best score from the userProgress document
+                            Long bestScore = progressDocument.getLong("best_score");
+
+                            if (bestScore != null) {
+                                // Fetch the current leaderboard entry for comparison
+                                db.collection("leaderboard").document(uid)
+                                        .get()
+                                        .addOnCompleteListener(leaderboardTask -> {
+                                            if (leaderboardTask.isSuccessful()) {
+                                                DocumentSnapshot leaderboardDocument = leaderboardTask.getResult();
+                                                boolean shouldUpdate = false;
+
+                                                if (leaderboardDocument.exists()) {
+                                                    // Compare with the existing leaderboard score
+                                                    Long currentLeaderboardScore = leaderboardDocument.getLong("score");
+                                                    if (currentLeaderboardScore == null || bestScore > currentLeaderboardScore) {
+                                                        shouldUpdate = true;
+                                                    }
+                                                } else {
+                                                    // No existing entry, create a new one
+                                                    shouldUpdate = true;
+                                                }
+
+                                                if (shouldUpdate) {
+                                                    // Prepare the leaderboard entry with username, score, and timestamp
+                                                    Map<String, Object> leaderboardEntry = new HashMap<>();
+                                                    leaderboardEntry.put("username", username);
+                                                    leaderboardEntry.put("score", bestScore);
+                                                    leaderboardEntry.put("timestamp", FieldValue.serverTimestamp());  // Add timestamp
+
+                                                    // Save the entry to the leaderboard
+                                                    db.collection("leaderboard").document(uid)
+                                                            .set(leaderboardEntry)
+                                                            .addOnSuccessListener(aVoid -> Log.d("Firestore", "Leaderboard updated successfully for UID: " + uid))
+                                                            .addOnFailureListener(e -> Log.e("Firestore", "Error updating leaderboard: ", e));
+                                                } else {
+                                                    Log.d("Firestore", "Leaderboard score not updated as best score is not higher.");
+                                                }
+                                            } else {
+                                                Log.e("Firestore", "Error fetching leaderboard entry: ", leaderboardTask.getException());
+                                            }
+                                        });
+                            } else {
+                                Log.e("Firestore", "Best score is null in userProgress for UID: " + uid);
+                            }
                         } else {
-                            // Document doesn't exist, so create a new document without timestamp
-                            leaderboardEntry.put("timestamp", FieldValue.serverTimestamp()); // Add timestamp only when creating
-                            db.collection("leaderboard")
-                                    .document(uid)
-                                    .set(leaderboardEntry)
-                                    .addOnSuccessListener(aVoid -> {
-                                        Log.d("Firestore", "Leaderboard entry saved successfully for UID: " + uid);
-                                    })
-                                    .addOnFailureListener(e -> {
-                                        Log.e("Firestore", "Error saving leaderboard entry: ", e);
-                                    });
+                            Log.e("Firestore", "No userProgress found for UID: " + uid);
                         }
                     } else {
-                        Log.e("Firestore", "Error checking for document existence: ", task.getException());
+                        Log.e("Firestore", "Error fetching userProgress: ", task.getException());
                     }
                 });
     }
+
 
     private void fetchFlashcards() {
         Log.d("Firestore", "Fetching flashcards...");
@@ -249,6 +261,59 @@ public class GuessTheSynonymActivity extends AppCompatActivity {
         Log.d("Game", "Options: " + options);
 
         answeredCorrectly = false;
+    }
+
+    private void updateUserProgress(int newScore) {
+        FirebaseAuth auth = FirebaseAuth.getInstance();
+        String uid;
+
+        if (auth.getCurrentUser() != null) {
+            uid = auth.getCurrentUser().getUid();
+        } else {
+            Log.e("Firestore", "No authenticated user found.");
+            return; // Exit if no user is logged in
+        }
+
+        FirebaseFirestore db = FirebaseFirestore.getInstance();
+
+        db.collection("userProgress").document(uid).get()
+                .addOnCompleteListener(task -> {
+                    if (task.isSuccessful()) {
+                        DocumentSnapshot document = task.getResult();
+
+                        int bestScore = newScore;
+                        int worstScore = newScore;
+
+                        if (document.exists()) {
+                            // Get existing scores, default to newScore if null
+                            Long existingBest = document.getLong("best_score");
+                            Long existingWorst = document.getLong("worst_score");
+
+                            // Set the best score if the new score is higher
+                            bestScore = Math.max(existingBest != null ? existingBest.intValue() : newScore, newScore);
+
+                            // Set the worst score if the new score is less than the best score
+                            if (newScore < bestScore) {
+                                worstScore = newScore;
+                            } else {
+                                // Keep the old worst score if the new score is not less than the best score
+                                worstScore = existingWorst != null ? existingWorst.intValue() : bestScore;
+                            }
+                        }
+
+                        // Update the progress document
+                        Map<String, Object> progressData = new HashMap<>();
+                        progressData.put("best_score", bestScore);
+                        progressData.put("worst_score", worstScore);
+
+                        db.collection("userProgress").document(uid)
+                                .set(progressData)
+                                .addOnSuccessListener(aVoid -> Log.d("Firestore", "User progress updated successfully"))
+                                .addOnFailureListener(e -> Log.e("Firestore", "Error updating user progress", e));
+                    } else {
+                        Log.e("Firestore", "Error fetching user progress: ", task.getException());
+                    }
+                });
     }
 
 
