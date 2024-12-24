@@ -16,13 +16,12 @@ import com.google.android.material.navigation.NavigationView;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.FirebaseFirestore;
-import com.google.firebase.firestore.QueryDocumentSnapshot;
 
 public class DashboardActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener {
 
     private FirebaseAuth mAuth;
     private FirebaseFirestore db;
-    private TextView welcomeTextView, leaderboardScoreTextView, totalWordsTextView, progressLabelTextView;
+    private TextView welcomeTextView, bestScoreView, worstScoreView,totalWordsTextView, progressLabelTextView;
     private LinearProgressIndicator progressBar;
     private DrawerLayout drawerLayout;
     private ActionBarDrawerToggle drawerToggle;
@@ -37,7 +36,8 @@ public class DashboardActivity extends AppCompatActivity implements NavigationVi
 
         // Initialize UI components
         welcomeTextView = findViewById(R.id.welcomeTextView);
-        leaderboardScoreTextView = findViewById(R.id.leaderboardScoreTextView);
+        bestScoreView = findViewById(R.id.leaderboardScoreTextView);
+        worstScoreView = findViewById(R.id.leaderboardScoreTextView2);
         totalWordsTextView = findViewById(R.id.totalWordsTextView);
         progressBar = findViewById(R.id.progressBar);
         progressLabelTextView = findViewById(R.id.progressLabelTextView);
@@ -87,19 +87,22 @@ public class DashboardActivity extends AppCompatActivity implements NavigationVi
     }
 
     private void loadUserScore(String userId) {
-        db.collection("leaderboard").document(userId)
+        db.collection("userProgress").document(userId)
                 .get()
                 .addOnSuccessListener(documentSnapshot -> {
                     if (documentSnapshot.exists()) {
-                        Long score = documentSnapshot.getLong("score");
-                        if (score != null) {
-                            leaderboardScoreTextView.setText("Score: " + score);
+                        Long bestScore = documentSnapshot.getLong("best_score");
+                        Long worstScore = documentSnapshot.getLong("worst_score");
+                        if (bestScore != null && worstScore != null) {
+                            bestScoreView.setText("BestScore: " + bestScore);
+                            worstScoreView.setText("WorstScore:" +worstScore);
                         } else {
-                            leaderboardScoreTextView.setText("Score: --");
+                            bestScoreView.setText("BestScore: --");
+                            worstScoreView.setText("WorstScore: --");
                             Toast.makeText(DashboardActivity.this, "Score not available.", Toast.LENGTH_SHORT).show();
                         }
                     } else {
-                        leaderboardScoreTextView.setText("Score: --");
+                        bestScoreView.setText("Score: --");
                         Toast.makeText(DashboardActivity.this, "No leaderboard entry found.", Toast.LENGTH_SHORT).show();
                     }
                 })
@@ -157,8 +160,7 @@ public class DashboardActivity extends AppCompatActivity implements NavigationVi
     }
 
     private void navigateToProfile() {
-        // Uncomment and add your logic to navigate to the profile screen
-        // startActivity(new Intent(DashboardActivity.this, ProfileActivity.class));
+        startActivity(new Intent(DashboardActivity.this, DashboardActivity.class));
     }
 
     private void logoutUser() {

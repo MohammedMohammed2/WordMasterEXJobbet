@@ -38,18 +38,16 @@ public class GuessTheSynonymActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_guess_the_synonym);
 
-        // Initialize Firestore
         firestore = FirebaseFirestore.getInstance();
         wordDocuments = new ArrayList<>();
 
-        // Initialize Views
         wordTextView = findViewById(R.id.wordTextView);
         option1Button = findViewById(R.id.option1Button);
         option2Button = findViewById(R.id.option2Button);
         option3Button = findViewById(R.id.option3Button);
         option4Button = findViewById(R.id.option4Button);
         nextQuestionButton = findViewById(R.id.nextQuestionButton);
-        giveUpButton = findViewById(R.id.giveUpButton); // Initialize Give Up button
+        giveUpButton = findViewById(R.id.giveUpButton);
         scoreTextView = findViewById(R.id.scoreTextView);
 
         // Fetch words from Firestore
