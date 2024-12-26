@@ -5,7 +5,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context=".MainActivity">
-        <!-- Login UI Elements -->
+
         <EditText
             android:id="@+id/emailEditText"
             android:layout_width="0dp"
@@ -45,7 +45,6 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent" />
 
-        <!-- Link to go to SignUpActivity -->
         <TextView
             android:id="@+id/signUpTextView"
             android:layout_width="wrap_content"

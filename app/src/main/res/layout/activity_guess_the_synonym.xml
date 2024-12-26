@@ -10,7 +10,6 @@
     android:background="@android:color/background_light"
     tools:context=".GuessTheSynonymActivity">
 
-    <!-- Main Card -->
     <androidx.cardview.widget.CardView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -24,7 +23,7 @@
             android:orientation="vertical"
             android:padding="16dp">
 
-            <!-- Word to Guess -->
+
             <TextView
                 android:id="@+id/wordTextView"
                 android:layout_width="match_parent"
@@ -36,7 +35,7 @@
                 android:textStyle="bold"
                 android:textColor="@android:color/black" />
 
-            <!-- Score -->
+
             <TextView
                 android:id="@+id/scoreTextView"
                 android:layout_width="match_parent"
@@ -47,7 +46,7 @@
                 android:textSize="18sp"
                 android:textColor="@android:color/black" />
 
-            <!-- Option Buttons -->
+
             <Button
                 android:id="@+id/option1Button"
                 android:layout_width="match_parent"

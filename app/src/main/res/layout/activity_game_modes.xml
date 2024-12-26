@@ -7,7 +7,7 @@
     android:orientation="vertical"
     android:padding="16dp">
 
-    <!-- Game mode buttons -->
+
     <Button
         android:id="@+id/guessTheSynonymButton"
         android:layout_width="match_parent"
@@ -18,7 +18,7 @@
         android:id="@+id/flashcardGameButton"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Flashcard Game" />
+        android:text="Synonmyms Sniper" />
 </LinearLayout>
 
 

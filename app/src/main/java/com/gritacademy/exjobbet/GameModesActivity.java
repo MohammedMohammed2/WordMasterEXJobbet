@@ -18,9 +18,13 @@ public class GameModesActivity extends AppCompatActivity {
 
         // Game mode buttons
         Button guessTheSynonymButton = findViewById(R.id.guessTheSynonymButton);
+        // Game mode buttons
+        Button synonymSniper = findViewById(R.id.flashcardGameButton);
 
         // Set listeners for each game mode
         guessTheSynonymButton.setOnClickListener(v -> startActivity(new Intent(GameModesActivity.this, GuessTheSynonymActivity.class)));
+        synonymSniper.setOnClickListener(v-> startActivity(new Intent(GameModesActivity.this, SynonymSniperActivity.class)));
+
     }
 
 }
