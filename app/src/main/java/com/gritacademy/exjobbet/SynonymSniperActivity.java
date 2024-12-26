@@ -92,7 +92,7 @@ public class SynonymSniperActivity extends AppCompatActivity {
                     }
 
                     if (currentSynonyms.isEmpty()) {
-                        fetchRandomWordAndSynonyms(); // Retry if no synonyms
+                        fetchRandomWordAndSynonyms();
                         return;
                     }
 
@@ -126,7 +126,7 @@ public class SynonymSniperActivity extends AppCompatActivity {
 
     private void spawnBouncingWords() {
         Random random = new Random();
-        int totalWords = Math.min(10, currentSynonyms.size() + 5); // Limit total words to 10
+        int totalWords = Math.min(10, currentSynonyms.size() + 5);
 
         for (int i = 0; i < totalWords; i++) {
             String word;
