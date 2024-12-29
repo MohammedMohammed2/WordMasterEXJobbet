@@ -7,4 +7,6 @@
     <color name="colorAccent">#03DAC5</color>
     <color name="trackColor">#FFC5CAE9</color>
     <color name="colorDrawerBackground">#FFFFFF</color>
+    <color name="green">#4CAF50</color>
+    <color name="red">#F44336</color>
 </resources>

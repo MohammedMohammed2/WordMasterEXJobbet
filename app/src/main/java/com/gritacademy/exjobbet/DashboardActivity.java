@@ -1,8 +1,10 @@
 package com.gritacademy.exjobbet;
 
 import android.content.Intent;
+import android.graphics.Typeface;
 import android.os.Bundle;
 import android.view.MenuItem;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -16,6 +18,8 @@ import com.google.android.material.navigation.NavigationView;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.FirebaseFirestore;
+
+import java.util.Map;
 
 public class DashboardActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener {
 
@@ -36,8 +40,7 @@ public class DashboardActivity extends AppCompatActivity implements NavigationVi
 
         // Initialize UI components
         welcomeTextView = findViewById(R.id.welcomeTextView);
-        bestScoreView = findViewById(R.id.leaderboardScoreTextView);
-        worstScoreView = findViewById(R.id.leaderboardScoreTextView2);
+
         totalWordsTextView = findViewById(R.id.totalWordsTextView);
         progressBar = findViewById(R.id.progressBar);
         progressLabelTextView = findViewById(R.id.progressLabelTextView);
@@ -87,50 +90,125 @@ public class DashboardActivity extends AppCompatActivity implements NavigationVi
     }
 
     private void loadUserScore(String userId) {
+        LinearLayout gameModeContainer = findViewById(R.id.gameModeContainer);
+
         db.collection("userProgress").document(userId)
                 .get()
                 .addOnSuccessListener(documentSnapshot -> {
                     if (documentSnapshot.exists()) {
-                        Long bestScore = documentSnapshot.getLong("best_score");
-                        Long worstScore = documentSnapshot.getLong("worst_score");
-                        if (bestScore != null && worstScore != null) {
-                            bestScoreView.setText("BestScore: " + bestScore);
-                            worstScoreView.setText("WorstScore:" +worstScore);
-                        } else {
-                            bestScoreView.setText("BestScore: --");
-                            worstScoreView.setText("WorstScore: --");
-                            Toast.makeText(DashboardActivity.this, "Score not available.", Toast.LENGTH_SHORT).show();
+                        // Loop through all game modes in the document
+                        for (String gameMode : documentSnapshot.getData().keySet()) {
+                            Map<String, Object> gameModeData = (Map<String, Object>) documentSnapshot.get(gameMode);
+
+                            if (gameModeData != null) {
+                                Long bestScore = (Long) gameModeData.get("best_score");
+                                Long worstScore = (Long) gameModeData.get("worst_score");
+
+                                // Dynamically add a row for this game mode
+                                addGameModeRow(gameMode, bestScore, worstScore, gameModeContainer);
+                            }
                         }
                     } else {
-                        bestScoreView.setText("Score: --");
-                        Toast.makeText(DashboardActivity.this, "No leaderboard entry found.", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(DashboardActivity.this, "No progress entry found.", Toast.LENGTH_SHORT).show();
                     }
                 })
-                .addOnFailureListener(e -> Toast.makeText(DashboardActivity.this, "Failed to load leaderboard score.", Toast.LENGTH_SHORT).show());
+                .addOnFailureListener(e -> {
+                    Toast.makeText(DashboardActivity.this, "Failed to load progress.", Toast.LENGTH_SHORT).show();
+                });
     }
 
+    private void addGameModeRow(String gameMode, Long bestScore, Long worstScore, LinearLayout container) {
+        // Create a container for the game mode section
+        LinearLayout gameModeContainer = new LinearLayout(this);
+        gameModeContainer.setLayoutParams(new LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT));
+        gameModeContainer.setOrientation(LinearLayout.VERTICAL);
+        gameModeContainer.setPadding(16, 16, 16, 16);
+        gameModeContainer.setBackgroundResource(R.drawable.container_background);
+
+        // Add the game mode title
+        TextView gameModeTitle = new TextView(this);
+        gameModeTitle.setText("GameMode: "+gameMode);
+        gameModeTitle.setTextSize(18f);
+        gameModeTitle.setTextColor(getResources().getColor(R.color.black));
+        gameModeTitle.setPadding(0, 0, 0, 8);
+        gameModeTitle.setTypeface(null, Typeface.BOLD);
+        gameModeContainer.addView(gameModeTitle);
+
+        // Display best score if available
+        if (bestScore != null) {
+            TextView bestScoreText = new TextView(this);
+            bestScoreText.setText("Best Score: " + bestScore);
+            bestScoreText.setTextSize(16f);
+            bestScoreText.setTextColor(getResources().getColor(R.color.green));
+            bestScoreText.setPadding(0, 0, 0, 8);
+            gameModeContainer.addView(bestScoreText);
+        }
+
+        // Display worst score if available
+        if (worstScore != null) {
+            TextView worstScoreText = new TextView(this);
+            worstScoreText.setText("Worst Score: " + worstScore);
+            worstScoreText.setTextSize(16f);
+            worstScoreText.setTextColor(getResources().getColor(R.color.red));
+            worstScoreText.setPadding(0, 0, 0, 8);
+            gameModeContainer.addView(worstScoreText);
+        }
+
+        // Add the game mode container to the main container
+        container.addView(gameModeContainer);
+    }
     private void fetchTotalWordsAndUpdateProgress(String userId) {
         db.collection("flashcards").get()
                 .addOnSuccessListener(querySnapshot -> {
-                    int totalWords = querySnapshot.size();  // Get the total number of flashcards
+                    int totalWords = querySnapshot.size(); // Get the total number of flashcards
                     totalWordsTextView.setText("Total Words in Flashcards: " + totalWords);
 
-                    // Fetch user score and calculate progress
+                    if (totalWords == 0) {
+                        progressBar.setProgress(0);
+                        progressLabelTextView.setText("Progress: 0%");
+                        return; // No flashcards, exit early
+                    }
+
+                    // Fetch user progress from leaderboard
                     db.collection("leaderboard").document(userId)
                             .get()
                             .addOnSuccessListener(documentSnapshot -> {
                                 if (documentSnapshot.exists()) {
-                                    Long score = documentSnapshot.getLong("score");
-                                    int progress = (int) ((score != null ? score : 0) * 100.0 / totalWords);
-                                    progressBar.setProgress(progress);
-                                    progressLabelTextView.setText("Progress: " + progress + "%");
+                                    Map<String, Object> gameModes = (Map<String, Object>) documentSnapshot.getData();
+
+                                    if (gameModes != null && gameModes.containsKey("guessTheSynonyms")) {
+                                        Map<String, Object> gameModeData = (Map<String, Object>) gameModes.get("guessTheSynonyms");
+                                        Long score = (Long) gameModeData.get("score");
+
+                                        if (score != null) {
+                                            int progress = (int) ((score * 100.0) / totalWords);
+                                            progressBar.setProgress(progress);
+                                            progressLabelTextView.setText("Progress: " + progress + "%");
+                                        } else {
+                                            progressBar.setProgress(0);
+                                            progressLabelTextView.setText("Progress: 0%");
+                                        }
+                                    } else {
+                                        progressBar.setProgress(0);
+                                        progressLabelTextView.setText("Progress: 0%");
+                                    }
+                                } else {
+                                    progressBar.setProgress(0);
+                                    progressLabelTextView.setText("Progress: 0%");
                                 }
+                            })
+                            .addOnFailureListener(e -> {
+                                Toast.makeText(DashboardActivity.this, "Failed to fetch score.", Toast.LENGTH_SHORT).show();
                             });
                 })
                 .addOnFailureListener(e -> {
                     Toast.makeText(DashboardActivity.this, "Failed to fetch words.", Toast.LENGTH_SHORT).show();
                 });
     }
+
+
 
     // Handle navigation item clicks
     @Override

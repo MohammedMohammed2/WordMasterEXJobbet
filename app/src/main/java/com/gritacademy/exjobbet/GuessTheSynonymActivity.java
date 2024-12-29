@@ -13,6 +13,7 @@ import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QuerySnapshot;
+import com.google.firebase.firestore.SetOptions;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -90,64 +91,76 @@ public class GuessTheSynonymActivity extends AppCompatActivity {
             finish();
         });
     }
-
     private void saveLeaderboardEntry(String uid, String username) {
         FirebaseFirestore db = FirebaseFirestore.getInstance();
 
-        // Fetch the user's best score from the userProgress collection
+        // Get user's progress
         db.collection("userProgress").document(uid)
                 .get()
                 .addOnCompleteListener(task -> {
                     if (task.isSuccessful()) {
                         DocumentSnapshot progressDocument = task.getResult();
                         if (progressDocument.exists()) {
-                            // Get the best score from the userProgress document
-                            Long bestScore = progressDocument.getLong("best_score");
+                            // Get the 'guessTheSynonyms' map
+                            Map<String, Object> guessTheSynonyms = (Map<String, Object>) progressDocument.get("guessTheSynonyms");
 
-                            if (bestScore != null) {
-                                // Fetch the current leaderboard entry for comparison
-                                db.collection("leaderboard").document(uid)
-                                        .get()
-                                        .addOnCompleteListener(leaderboardTask -> {
-                                            if (leaderboardTask.isSuccessful()) {
-                                                DocumentSnapshot leaderboardDocument = leaderboardTask.getResult();
-                                                boolean shouldUpdate = false;
+                            if (guessTheSynonyms != null) {
+                                // Get the best score
+                                Long bestScore = (Long) guessTheSynonyms.get("best_score");
 
-                                                if (leaderboardDocument.exists()) {
-                                                    // Compare with the existing leaderboard score
-                                                    Long currentLeaderboardScore = leaderboardDocument.getLong("score");
-                                                    if (currentLeaderboardScore == null || bestScore > currentLeaderboardScore) {
+                                if (bestScore != null) {
+                                    // Check if leaderboard entry exists
+                                    db.collection("leaderboard").document(uid)
+                                            .get()
+                                            .addOnCompleteListener(leaderboardTask -> {
+                                                if (leaderboardTask.isSuccessful()) {
+                                                    DocumentSnapshot leaderboardDocument = leaderboardTask.getResult();
+                                                    boolean shouldUpdate = false;
+
+                                                    if (leaderboardDocument.exists()) {
+                                                        // Compare with existing score
+                                                        Map<String, Object> existingGameModeData = (Map<String, Object>) leaderboardDocument.get("guessTheSynonyms");
+                                                        if (existingGameModeData != null) {
+                                                            Long currentLeaderboardScore = (Long) existingGameModeData.get("score");
+                                                            if (currentLeaderboardScore == null || bestScore > currentLeaderboardScore) {
+                                                                shouldUpdate = true;
+                                                            }
+                                                        }
+                                                    } else {
+                                                        // No entry, create new one
                                                         shouldUpdate = true;
                                                     }
-                                                } else {
-                                                    // No existing entry, create a new one
-                                                    shouldUpdate = true;
-                                                }
 
-                                                if (shouldUpdate) {
-                                                    // Prepare the leaderboard entry with username, score, and timestamp
-                                                    Map<String, Object> leaderboardEntry = new HashMap<>();
-                                                    leaderboardEntry.put("username", username);
-                                                    leaderboardEntry.put("score", bestScore);
-                                                    leaderboardEntry.put("timestamp", FieldValue.serverTimestamp());  // Add timestamp
+                                                    if (shouldUpdate) {
+                                                        // Prepare leaderboard data
+                                                        Map<String, Object> leaderboardGameModeData = new HashMap<>();
+                                                        leaderboardGameModeData.put("username", username);
+                                                        leaderboardGameModeData.put("score", bestScore);
+                                                        leaderboardGameModeData.put("date", FieldValue.serverTimestamp());
 
-                                                    // Save the entry to the leaderboard
-                                                    db.collection("leaderboard").document(uid)
-                                                            .set(leaderboardEntry)
-                                                            .addOnSuccessListener(aVoid -> Log.d("Firestore", "Leaderboard updated successfully for UID: " + uid))
-                                                            .addOnFailureListener(e -> Log.e("Firestore", "Error updating leaderboard: ", e));
+                                                        Map<String, Object> leaderboardEntry = new HashMap<>();
+                                                        leaderboardEntry.put("guessTheSynonyms", leaderboardGameModeData);
+
+                                                        // Update leaderboard
+                                                        db.collection("leaderboard").document(uid)
+                                                                .set(leaderboardEntry)
+                                                                .addOnSuccessListener(aVoid -> Log.d("Firestore", "Leaderboard updated for UID: " + uid))
+                                                                .addOnFailureListener(e -> Log.e("Firestore", "Error updating leaderboard: ", e));
+                                                    } else {
+                                                        Log.d("Firestore", "Score not updated.");
+                                                    }
                                                 } else {
-                                                    Log.d("Firestore", "Leaderboard score not updated as best score is not higher.");
+                                                    Log.e("Firestore", "Error fetching leaderboard: ", leaderboardTask.getException());
                                                 }
-                                            } else {
-                                                Log.e("Firestore", "Error fetching leaderboard entry: ", leaderboardTask.getException());
-                                            }
-                                        });
+                                            });
+                                } else {
+                                    Log.e("Firestore", "Best score is null.");
+                                }
                             } else {
-                                Log.e("Firestore", "Best score is null in userProgress for UID: " + uid);
+                                Log.e("Firestore", "guessTheSynonyms data not found.");
                             }
                         } else {
-                            Log.e("Firestore", "No userProgress found for UID: " + uid);
+                            Log.e("Firestore", "No userProgress found.");
                         }
                     } else {
                         Log.e("Firestore", "Error fetching userProgress: ", task.getException());
@@ -158,7 +171,6 @@ public class GuessTheSynonymActivity extends AppCompatActivity {
 
     private void fetchFlashcards() {
         Log.d("Firestore", "Fetching flashcards...");
-
         firestore.collection("flashcards").get()
                 .addOnCompleteListener(task -> {
                     if (task.isSuccessful()) {
@@ -273,6 +285,7 @@ public class GuessTheSynonymActivity extends AppCompatActivity {
         }
 
         FirebaseFirestore db = FirebaseFirestore.getInstance();
+        String gameMode = "guessTheSynonyms"; // Current game mode
 
         db.collection("userProgress").document(uid).get()
                 .addOnCompleteListener(task -> {
@@ -283,29 +296,30 @@ public class GuessTheSynonymActivity extends AppCompatActivity {
                         int worstScore = newScore;
 
                         if (document.exists()) {
-                            // Get existing scores, default to newScore if null
-                            Long existingBest = document.getLong("best_score");
-                            Long existingWorst = document.getLong("worst_score");
+                            // Fetch existing scores for the game mode
+                            Map<String, Object> gameModeData = (Map<String, Object>) document.get(gameMode);
 
-                            // Set the best score if the new score is higher
-                            bestScore = Math.max(existingBest != null ? existingBest.intValue() : newScore, newScore);
+                            if (gameModeData != null) {
+                                Long existingBest = (Long) gameModeData.get("best_score");
+                                Long existingWorst = (Long) gameModeData.get("worst_score");
 
-                            // Set the worst score if the new score is less than the best score
-                            if (newScore < bestScore) {
-                                worstScore = newScore;
-                            } else {
-                                // Keep the old worst score if the new score is not less than the best score
-                                worstScore = existingWorst != null ? existingWorst.intValue() : bestScore;
+                                // Update best and worst scores
+                                bestScore = Math.max(existingBest != null ? existingBest.intValue() : newScore, newScore);
+                                worstScore = Math.min(existingWorst != null ? existingWorst.intValue() : newScore, newScore);
                             }
                         }
 
-                        // Update the progress document
+                        // Prepare data for the game mode
+                        Map<String, Object> gameModeData = new HashMap<>();
+                        gameModeData.put("best_score", bestScore);
+                        gameModeData.put("worst_score", worstScore);
+
+                        // Save progress to Firestore
                         Map<String, Object> progressData = new HashMap<>();
-                        progressData.put("best_score", bestScore);
-                        progressData.put("worst_score", worstScore);
+                        progressData.put(gameMode, gameModeData);
 
                         db.collection("userProgress").document(uid)
-                                .set(progressData)
+                                .set(progressData, SetOptions.merge())
                                 .addOnSuccessListener(aVoid -> Log.d("Firestore", "User progress updated successfully"))
                                 .addOnFailureListener(e -> Log.e("Firestore", "Error updating user progress", e));
                     } else {
@@ -313,6 +327,7 @@ public class GuessTheSynonymActivity extends AppCompatActivity {
                     }
                 });
     }
+
 
 
     private void checkAnswer(String selectedAnswer) {

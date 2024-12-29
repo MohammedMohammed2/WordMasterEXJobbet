@@ -29,37 +29,15 @@
                 android:textColor="@color/colorPrimary" />
 
             <TextView
-                android:id="@+id/leaderboardScoreTextView"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="BestScore: --"
-                android:textSize="18sp"
-                android:layout_below="@id/welcomeTextView"
-                android:layout_marginTop="40dp"
-                android:layout_centerHorizontal="true"
-                android:textColor="@color/black" />
-
-            <TextView
-                android:id="@+id/leaderboardScoreTextView2"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="WorstScore: --"
-                android:textSize="18sp"
-                android:layout_below="@id/welcomeTextView"
-                android:layout_marginTop="20dp"
-                android:layout_centerHorizontal="true"
-                android:textColor="@color/black" />
-
-            <TextView
                 android:id="@+id/totalWordsTextView"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Total Words in Flashcards: --"
                 android:textSize="16sp"
                 android:textColor="@color/black"
-                android:layout_below="@id/leaderboardScoreTextView"
+                android:layout_below="@id/welcomeTextView"
                 android:layout_marginTop="20dp"
-                android:layout_centerHorizontal="true"/>
+                android:layout_centerHorizontal="true" />
 
             <com.google.android.material.progressindicator.LinearProgressIndicator
                 android:id="@+id/progressBar"
@@ -81,7 +59,40 @@
                 android:textColor="@color/black"
                 android:layout_below="@id/progressBar"
                 android:layout_marginTop="12dp"
-                android:layout_centerHorizontal="true"/>
+                android:layout_centerHorizontal="true" />
+            <LinearLayout
+                android:id="@+id/gameModeContainer"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_below="@id/progressLabelTextView"
+                android:layout_marginTop="20dp"
+                android:orientation="vertical"
+                android:padding="8dp">
+                <TextView
+                    android:id="@+id/gameModeTitle"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:textSize="18sp"
+                    android:textColor="@color/black"
+                    android:paddingBottom="8dp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/bestScoreText"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:textSize="16sp"
+                    android:textColor="@color/green"
+                    android:paddingBottom="8dp" />
+
+                <TextView
+                    android:id="@+id/worstScoreText"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:textSize="16sp"
+                    android:textColor="@color/red"
+                    android:paddingBottom="8dp" />
+            </LinearLayout>
         </RelativeLayout>
     </androidx.coordinatorlayout.widget.CoordinatorLayout>
 
@@ -94,4 +105,5 @@
         app:menu="@menu/drawer_menu"
         android:background="@color/colorDrawerBackground" />
 </androidx.drawerlayout.widget.DrawerLayout>
+
 
