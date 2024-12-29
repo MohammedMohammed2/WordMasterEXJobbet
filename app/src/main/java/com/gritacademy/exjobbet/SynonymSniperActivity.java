@@ -10,11 +10,19 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
+import com.google.firebase.firestore.SetOptions;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Random;
 
 public class SynonymSniperActivity extends AppCompatActivity {
@@ -213,7 +221,68 @@ public class SynonymSniperActivity extends AppCompatActivity {
         remainingTextView.setText("Remaining: " + remainingSynonyms.size());
     }
 
+
+    private void updateUserProgressSynonymSniper(int newScore) {
+        FirebaseAuth auth = FirebaseAuth.getInstance();
+        String uid;
+
+        if (auth.getCurrentUser() != null) {
+            uid = auth.getCurrentUser().getUid();
+        } else {
+            Log.e("Firestore", "No authenticated user found.");
+            return; // Exit if no user is logged in
+        }
+
+        FirebaseFirestore db = FirebaseFirestore.getInstance();
+        String gameMode = "synonymSniper"; // Set the game mode to "synonymSniper"
+
+        db.collection("userProgress").document(uid).get()
+                .addOnCompleteListener(task -> {
+                    if (task.isSuccessful()) {
+                        DocumentSnapshot document = task.getResult();
+
+                        int bestScore = newScore;
+                        int worstScore = newScore;
+
+                        if (document.exists()) {
+                            // Fetch existing scores for the game mode
+                            Map<String, Object> gameModeData = (Map<String, Object>) document.get(gameMode);
+
+                            if (gameModeData != null) {
+                                Long existingBest = (Long) gameModeData.get("best_score");
+                                Long existingWorst = (Long) gameModeData.get("worst_score");
+
+                                // Update best and worst scores
+                                bestScore = Math.max(existingBest != null ? existingBest.intValue() : newScore, newScore);
+                                worstScore = Math.min(existingWorst != null ? existingWorst.intValue() : newScore, newScore);
+                            }
+                        }
+
+                        // Prepare data for the game mode
+                        Map<String, Object> gameModeData = new HashMap<>();
+                        gameModeData.put("best_score", bestScore);
+                        gameModeData.put("worst_score", worstScore);
+
+                        // Save progress to Firestore
+                        Map<String, Object> progressData = new HashMap<>();
+                        progressData.put(gameMode, gameModeData);
+
+                        db.collection("userProgress").document(uid)
+                                .set(progressData, SetOptions.merge())
+                                .addOnSuccessListener(aVoid -> Log.d("Firestore", "User progress updated successfully"))
+                                .addOnFailureListener(e -> Log.e("Firestore", "Error updating user progress", e));
+                    } else {
+                        Log.e("Firestore", "Error fetching user progress: ", task.getException());
+                    }
+                });
+    }
+
+
     private void endGame() {
+        // Update user progress with the final score
+        updateUserProgressSynonymSniper(score);
+
+        // Show the game over dialog with the score
         new AlertDialog.Builder(this)
                 .setTitle("Game Over")
                 .setMessage("Your Score: " + score)
@@ -222,6 +291,9 @@ public class SynonymSniperActivity extends AppCompatActivity {
                 .show();
     }
 }
+
+
+
 
 
 
