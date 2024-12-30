@@ -39,7 +39,7 @@ public class LeaderBoardActivity extends AppCompatActivity {
 
         // Get the top 10 leaderboard entries sorted by score
         db.collection("leaderboard")
-                .orderBy("guessTheSynonyms.score", Query.Direction.DESCENDING) // Sort by the score inside the 'guessTheSynonyms' map
+                .orderBy("guessTheSynonyms.score", Query.Direction.DESCENDING)
                 .limit(10) // Fetch only the top 10 entries
                 .get()
                 .addOnCompleteListener(task -> {

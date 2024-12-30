@@ -143,7 +143,7 @@ public class GuessTheSynonymActivity extends AppCompatActivity {
 
                                                         // Update leaderboard
                                                         db.collection("leaderboard").document(uid)
-                                                                .set(leaderboardEntry)
+                                                                .set(leaderboardEntry,SetOptions.merge())
                                                                 .addOnSuccessListener(aVoid -> Log.d("Firestore", "Leaderboard updated for UID: " + uid))
                                                                 .addOnFailureListener(e -> Log.e("Firestore", "Error updating leaderboard: ", e));
                                                     } else {
