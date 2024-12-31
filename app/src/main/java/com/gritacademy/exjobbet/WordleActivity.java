@@ -11,6 +11,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.content.ContextCompat;
 
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
@@ -71,6 +72,7 @@ public class WordleActivity extends AppCompatActivity {
                         if (!fetchedWords.isEmpty()) {
                             wordList = fetchedWords;
                             targetWord = getRandomWord();
+                            Log.d("momo",targetWord);
                             setupGuessGrid();
                         } else {
                             showErrorMessage("No 5-letter words found.");
@@ -119,7 +121,8 @@ public class WordleActivity extends AppCompatActivity {
         // Check if guessed word is correct
         if (guessedWord.equals(targetWord)) {
             feedbackTextView.setText("You guessed the word!");
-            displayFeedback(guessedWord, "✔️✔️✔️✔️✔️");  // All correct letters
+            String feedback = "GGGGG";  // All correct letters
+            displayFeedback(guessedWord, feedback);
             return;
         }
 
@@ -134,49 +137,72 @@ public class WordleActivity extends AppCompatActivity {
     }
 
     private String generateFeedback(String guessedWord) {
+        // Normalize to uppercase to avoid case sensitivity issues
+        guessedWord = guessedWord.toUpperCase();
+        targetWord = targetWord.toUpperCase();
+
         StringBuilder feedback = new StringBuilder();
-        boolean[] usedInWord = new boolean[5];
+        boolean[] usedInWord = new boolean[5];  // Tracks if a letter in the target word is used
         boolean[] usedInGuess = new boolean[5];
 
-        // First pass: Correct letters in the correct position
+        // Check for correct letters in the correct positions (Green)
         for (int i = 0; i < 5; i++) {
             if (guessedWord.charAt(i) == targetWord.charAt(i)) {
                 feedback.append('G');
                 usedInWord[i] = true;
                 usedInGuess[i] = true;
             } else {
-                feedback.append('N');
+                feedback.append('N');  // Default to incorrect
             }
         }
 
-        // Second pass: Correct letters in the wrong position
+        // Second pass: Check for correct letters in wrong positions (Yellow)
         for (int i = 0; i < 5; i++) {
-            if (feedback.charAt(i) == 'N' && targetWord.indexOf(guessedWord.charAt(i)) >= 0 && !usedInWord[i] && !usedInGuess[i]) {
-                feedback.setCharAt(i, 'Y');
-                usedInWord[i] = true;
+            if (feedback.charAt(i) == 'N') {  // Only consider letters that are not green
+                char guessedChar = guessedWord.charAt(i);
+                // Check if guessedChar exists in the target word and hasn't been used already
+                for (int j = 0; j < 5; j++) {
+                    if (targetWord.charAt(j) == guessedChar && !usedInWord[j] && !usedInGuess[i]) {
+                        feedback.setCharAt(i, 'Y');  // Correct letter in wrong position
+                        usedInWord[j] = true;  // Mark this position as used for yellow
+                        usedInGuess[i] = true;  // Mark this letter as used for yellow
+                        break;  // Exit the inner loop once we find a match
+                    }
+                }
             }
         }
 
         return feedback.toString();
     }
 
+
     private void displayFeedback(String guessedWord, String feedback) {
         Log.d(TAG, "Guess: " + guessedWord + " | Feedback: " + feedback);
 
+        // Loop through each letter and apply colors
         for (int i = 0; i < 5; i++) {
             TextView cell = (TextView) guessGrid.getChildAt(currentAttempt * 5 + i);
-            cell.setText(String.valueOf(guessedWord.charAt(i)));
+            cell.setText(String.valueOf(guessedWord.charAt(i)));  // Set the guessed letter
 
-            char feedbackChar = feedback.charAt(i);
+            char feedbackChar = feedback.charAt(i);  // Get the feedback for this letter
 
-            // Apply colors based on feedback
+            // Apply color based on feedback
             switch (feedbackChar) {
-                case 'G': cell.setBackgroundColor(getResources().getColor(R.color.green)); break;
-                case 'Y': cell.setBackgroundColor(getResources().getColor(R.color.yellow)); break;
-                case 'N': default: cell.setBackgroundColor(getResources().getColor(R.color.gray)); break;
+                case 'G':
+                    // Use ContextCompat.getColor() to handle deprecated getColor()
+                    cell.setBackgroundColor(ContextCompat.getColor(this, R.color.green));  // Correct letter in correct position
+                    break;
+                case 'Y':
+                    cell.setBackgroundColor(ContextCompat.getColor(this, R.color.yellow));  // Correct letter in wrong position
+                    break;
+                case 'N':
+                default:
+                    cell.setBackgroundColor(ContextCompat.getColor(this, R.color.gray));  // Incorrect letter
+                    break;
             }
         }
     }
+
 
 
 
