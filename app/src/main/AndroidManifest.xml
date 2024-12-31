@@ -15,6 +15,12 @@
         android:theme="@style/Theme.AppCompat.Light.DarkActionBar"
         tools:targetApi="31">
         <activity
+            android:name=".WordleActivity"
+            android:exported="false" />
+        <activity
+            android:name=".CrossWordActivity"
+            android:exported="false" />
+        <activity
             android:name=".MenuActivity"
             android:exported="false" />
         <activity

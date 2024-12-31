@@ -9,4 +9,9 @@
     <color name="colorDrawerBackground">#FFFFFF</color>
     <color name="green">#4CAF50</color>
     <color name="red">#F44336</color>
+    <color name="light_gray">#F0F0F0</color>
+    <color name="primary">#3F51B5</color>
+    <color name="yellow">#FFFF00</color>
+    <color name="gray">#808080</color>
+
 </resources>
