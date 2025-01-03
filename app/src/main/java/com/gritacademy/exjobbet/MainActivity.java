@@ -24,19 +24,18 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        // Initialize Firebase Auth
         mAuth = FirebaseAuth.getInstance();
 
-        // Initialize UI elements
+
         emailEditText = findViewById(R.id.emailEditText);
         passwordEditText = findViewById(R.id.passwordEditText);
         loginButton = findViewById(R.id.loginButton);
         signUpTextView = findViewById(R.id.signUpTextView);
 
-        // Handle login button click
+
         loginButton.setOnClickListener(v -> loginUser());
 
-        // Handle navigation to sign-up screen
+
         signUpTextView.setOnClickListener(v -> navigateToSignUp());
     }
 
@@ -68,14 +67,14 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void navigateToDashboard() {
-        // Placeholder for navigating to your main app screen after login
+
         Intent intent = new Intent(MainActivity.this, DashboardActivity.class);  // Replace with the actual main screen
         startActivity(intent);
         finish();  // Prevent going back to the login screen
     }
 
     private void navigateToSignUp() {
-        // Navigate to SignUpActivity (registration screen)
+
         Intent intent = new Intent(MainActivity.this, SignUpActivity.class);
         startActivity(intent);
     }
