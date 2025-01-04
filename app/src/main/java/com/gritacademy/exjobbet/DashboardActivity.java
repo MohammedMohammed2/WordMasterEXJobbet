@@ -77,7 +77,7 @@ public class DashboardActivity extends AppCompatActivity implements NavigationVi
 
             headerEmail.setText(currentUser.getEmail());
 
-            // Fetch username and display
+            // Fetch username using the uid of the logged in user
             db.collection("users").document(userId)
                     .get()
                     .addOnSuccessListener(documentSnapshot -> {
@@ -104,7 +104,7 @@ public class DashboardActivity extends AppCompatActivity implements NavigationVi
 
 
         gameModeContainer.removeAllViews();
-
+        //fetch userprogress using uid of the logged in user
         db.collection("userProgress").document(userId)
                 .get()
                 .addOnSuccessListener(documentSnapshot -> {
@@ -130,6 +130,7 @@ public class DashboardActivity extends AppCompatActivity implements NavigationVi
                 });
     }
 
+    //creates a new row for each game mode
     private void addGameModeRow(String gameMode, Long bestScore, Long worstScore, LinearLayout container) {
         LinearLayout gameModeContainer = new LinearLayout(this);
         gameModeContainer.setLayoutParams(new LinearLayout.LayoutParams(

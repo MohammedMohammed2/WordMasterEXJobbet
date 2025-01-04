@@ -63,6 +63,7 @@ public class SynonymSniperActivity extends AppCompatActivity {
         startNewTimer();
     }
 
+    // timer for game mode and when its done it finishes the game how ever its refreshed when all syonym are down
     private void startNewTimer() {
         if (countDownTimer != null) countDownTimer.cancel();
 
@@ -80,6 +81,7 @@ public class SynonymSniperActivity extends AppCompatActivity {
         countDownTimer.start();
     }
 
+    //fetch 4  or less synonym from flashcards collection
     private void fetchRandomWordAndSynonyms() {
         db.collection("flashcards").get().addOnCompleteListener(task -> {
             if (task.isSuccessful() && task.getResult() != null) {

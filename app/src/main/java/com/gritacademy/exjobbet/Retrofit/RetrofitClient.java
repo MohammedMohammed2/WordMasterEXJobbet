@@ -11,6 +11,7 @@ public class RetrofitClient {
 
     private static Retrofit retrofit;
 
+    //fetching synonyms from datamuse
     public static Retrofit getRetrofitInstance() {
         if (retrofit == null) {
 

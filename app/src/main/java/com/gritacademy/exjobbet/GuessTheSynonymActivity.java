@@ -63,6 +63,7 @@ public class GuessTheSynonymActivity extends AppCompatActivity {
         // Set listener for Next Question button
         nextQuestionButton.setOnClickListener(v -> loadNextQuestion());
 
+        //saves the current score whe clicked
         giveUpButton.setOnClickListener(v -> {
             Toast.makeText(this, "Returning to Game Modes...", Toast.LENGTH_SHORT).show();
 
@@ -91,6 +92,7 @@ public class GuessTheSynonymActivity extends AppCompatActivity {
             finish();
         });
     }
+    //method to save the score to leaderboard depedning on score
     private void saveLeaderboardEntry(String uid, String username) {
         FirebaseFirestore db = FirebaseFirestore.getInstance();
 
@@ -168,7 +170,7 @@ public class GuessTheSynonymActivity extends AppCompatActivity {
                 });
     }
 
-
+    //fetch words and their synonym from flsh card collection in my data base
     private void fetchFlashcards() {
         Log.d("Firestore", "Fetching flashcards...");
         firestore.collection("flashcards").get()
@@ -207,6 +209,7 @@ public class GuessTheSynonymActivity extends AppCompatActivity {
 
     private boolean answeredCorrectly = false;
 
+    //loads in the next question
     private void loadNextQuestion() {
         if (wordDocuments.isEmpty()) {
             Log.d("Game", "No more questions available!");
