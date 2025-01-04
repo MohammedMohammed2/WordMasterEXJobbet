@@ -245,7 +245,7 @@ public class GuessTheSynonymActivity extends AppCompatActivity {
             DocumentSnapshot randomDoc = wordDocuments.get(random.nextInt(wordDocuments.size()));
             String randomWord = randomDoc.getString("word");
 
-            if (!randomWord.equals(word)) {  // Ensure we're not picking synonyms of the same word
+            if (!randomWord.equals(word)) {
                 List<String> randomSynonyms = (List<String>) randomDoc.get("synonyms");
 
                 if (randomSynonyms != null && !randomSynonyms.isEmpty()) {

@@ -61,10 +61,10 @@ public class SignUpActivity extends AppCompatActivity {
                         // Save username in Firestore under the user ID (uid)
                         String uid = mAuth.getCurrentUser().getUid();
                         db.collection("users").document(uid).set(
-                                new User(username)  // Save username along with user data
+                                new User(username)
                         ).addOnSuccessListener(aVoid -> {
                             Toast.makeText(SignUpActivity.this, "Registration Successful", Toast.LENGTH_SHORT).show();
-                            finish();  // Go back to login screen
+                            finish();
                         }).addOnFailureListener(e -> {
                             Toast.makeText(SignUpActivity.this, "Error: " + e.getMessage(), Toast.LENGTH_SHORT).show();
                         });

@@ -203,11 +203,11 @@ public class WordleActivity extends AppCompatActivity {
                 .setTitle("Game Over")
                 .setMessage(message)
                 .setPositiveButton("Retry", (dialog, which) -> {
-                    resetGame();  // Reset game state and restart
+                    resetGame();
                     dialog.dismiss();
                 })
                 .setNegativeButton("Exit", (dialog, which) -> {
-                    finish();  // Close the activity
+                    finish();
                     dialog.dismiss();
                 })
                 .setCancelable(false)
@@ -221,10 +221,9 @@ public class WordleActivity extends AppCompatActivity {
 
         guessGrid.removeAllViews();
 
-        // Rebuild the grid with fresh cells
         setupGuessGrid();
 
-        // Clear the feedback and input fields
+
         feedbackTextView.setText("");
         guessInput.setText("");
     }

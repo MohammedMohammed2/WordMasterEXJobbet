@@ -20,11 +20,11 @@ public class GameModesActivity extends AppCompatActivity {
 
         Button synonymSniper = findViewById(R.id.flashcardGameButton);
 
-       Button crossword = findViewById(R.id.wordle);
+       Button wordle = findViewById(R.id.wordle);
 
         guessTheSynonymButton.setOnClickListener(v -> startActivity(new Intent(GameModesActivity.this, GuessTheSynonymActivity.class)));
         synonymSniper.setOnClickListener(v-> startActivity(new Intent(GameModesActivity.this, SynonymSniperActivity.class)));
-        crossword.setOnClickListener(v->startActivity(new Intent(GameModesActivity.this , WordleActivity.class)));
+        wordle.setOnClickListener(v->startActivity(new Intent(GameModesActivity.this , WordleActivity.class)));
 
     }
 

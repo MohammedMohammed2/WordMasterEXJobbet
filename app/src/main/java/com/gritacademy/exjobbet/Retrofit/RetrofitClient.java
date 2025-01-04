@@ -13,20 +13,20 @@ public class RetrofitClient {
 
     public static Retrofit getRetrofitInstance() {
         if (retrofit == null) {
-            // Set up logging interceptor
-            HttpLoggingInterceptor interceptor = new HttpLoggingInterceptor();
-            interceptor.setLevel(HttpLoggingInterceptor.Level.BODY); // Log request and response body
 
-            // Add the interceptor to the OkHttpClient
+            HttpLoggingInterceptor interceptor = new HttpLoggingInterceptor();
+            interceptor.setLevel(HttpLoggingInterceptor.Level.BODY);
+
+
             OkHttpClient client = new OkHttpClient.Builder()
                     .addInterceptor(interceptor)
                     .build();
 
-            // Create Retrofit instance with the logging interceptor
+
             retrofit = new Retrofit.Builder()
                     .baseUrl("https://api.datamuse.com/")
                     .client(client)
-                    .addConverterFactory(GsonConverterFactory.create()) // Gson converter
+                    .addConverterFactory(GsonConverterFactory.create())
                     .build();
         }
         return retrofit;

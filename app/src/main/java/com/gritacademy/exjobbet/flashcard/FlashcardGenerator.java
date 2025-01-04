@@ -78,7 +78,7 @@ public class FlashcardGenerator {
                 if (response.isSuccessful() && response.body() != null) {
                     List<String> synonyms = extractUniqueWords(response.body());
 
-                    // Only save the flashcard if synonyms exist
+
                     if (!synonyms.isEmpty()) {
                         flashcardData.put("synonyms", synonyms);
                         saveFlashcardToDatabase(flashcardData);

@@ -30,7 +30,6 @@ public class LeaderBoardActivity extends AppCompatActivity {
 
         leaderboardLayout = findViewById(R.id.leaderboardLayout);
 
-        // Fetch leaderboard data from Firestore
         fetchLeaderboardData();
     }
 
@@ -40,7 +39,7 @@ public class LeaderBoardActivity extends AppCompatActivity {
         // Get the top 10 leaderboard entries sorted by score
         db.collection("leaderboard")
                 .orderBy("guessTheSynonyms.score", Query.Direction.DESCENDING)
-                .limit(10) // Fetch only the top 10 entries
+                .limit(10)
                 .get()
                 .addOnCompleteListener(task -> {
                     if (task.isSuccessful()) {
@@ -51,22 +50,21 @@ public class LeaderBoardActivity extends AppCompatActivity {
                                 Map<String, Object> guessTheSynonyms = (Map<String, Object>) document.get("guessTheSynonyms");
 
                                 if (guessTheSynonyms != null) {
-                                    // Extract username, score, and timestamp from the 'guessTheSynonyms' map
+
                                     String username = (String) guessTheSynonyms.get("username");
                                     Long score = (Long) guessTheSynonyms.get("score");
                                     Timestamp timestampObj = (Timestamp) guessTheSynonyms.get("date");
 
-                                    // Log values to check if they are correct
                                     Log.d("Leaderboard", "Username: " + username);
                                     Log.d("Leaderboard", "Score: " + score);
                                     Log.d("Leaderboard", "Timestamp: " + timestampObj);
 
-                                    // Make sure we have valid data before proceeding
+
                                     if (username != null && score != null && timestampObj != null) {
                                         // Convert timestamp to a readable format
                                         String timestamp = DateFormat.format("MM/dd/yyyy hh:mm:ss", timestampObj.toDate()).toString();
 
-                                        // Create the leaderboard entry card
+
                                         CardView cardView = new CardView(this);
                                         LinearLayout.LayoutParams layoutParams = new LinearLayout.LayoutParams(
                                                 LinearLayout.LayoutParams.MATCH_PARENT,
@@ -75,7 +73,6 @@ public class LeaderBoardActivity extends AppCompatActivity {
                                         layoutParams.setMargins(0, 0, 0, 16);
                                         cardView.setLayoutParams(layoutParams);
 
-                                        // Set the card background color
                                         int backgroundColor = getCardBackgroundColor(score);
                                         cardView.setCardBackgroundColor(backgroundColor);
 
@@ -83,16 +80,15 @@ public class LeaderBoardActivity extends AppCompatActivity {
                                         cardView.setCardElevation(8f);
                                         cardView.setRadius(12f);
 
-                                        // Create a TextView for displaying the leaderboard entry
                                         TextView textView = new TextView(this);
                                         textView.setText(username + "\nScore: " + score + "\nTimestamp: " + timestamp);
                                         textView.setPadding(16, 16, 16, 16);
                                         textView.setTextSize(16f);
 
-                                        // Add the TextView to the CardView
+
                                         cardView.addView(textView);
 
-                                        // Add the CardView to the leaderboard layout
+
                                         if (leaderboardLayout != null) {
                                             leaderboardLayout.addView(cardView);
                                         } else {

@@ -75,7 +75,6 @@
                 android:layout_marginTop="8dp"
                 android:text="Option 4" />
 
-            <!-- Next Question Button -->
             <Button
                 android:id="@+id/nextQuestionButton"
                 android:layout_width="match_parent"

@@ -93,7 +93,6 @@ public class SynonymSniperActivity extends AppCompatActivity {
                     String targetWord = randomWordDoc.getString("word");
                     currentSynonyms = (List<String>) randomWordDoc.get("synonyms");
 
-                    // Ensure that we only get up to 4 synonyms
                     if (currentSynonyms.size() > 4) {
                         currentSynonyms = currentSynonyms.subList(0, 4);
                     }
@@ -184,7 +183,7 @@ public class SynonymSniperActivity extends AppCompatActivity {
             if (isSynonym) {
                 score++;
                 wordButton.setBackgroundColor(getResources().getColor(android.R.color.holo_green_light));
-                remainingSynonyms.remove(word); // Remove from remaining
+                remainingSynonyms.remove(word);
                 updateRemaining();
                 if (remainingSynonyms.isEmpty()) {
                     fetchRandomWordAndSynonyms();
@@ -200,11 +199,11 @@ public class SynonymSniperActivity extends AppCompatActivity {
     }
 
     private int getRandomX() {
-        return new Random().nextInt(screenWidth - 200); // Adjust for padding
+        return new Random().nextInt(screenWidth - 200);
     }
 
     private int getRandomY() {
-        int y = new Random().nextInt(screenHeight - 300); // Adjust for screen height and padding
+        int y = new Random().nextInt(screenHeight - 300);
         int targetWordEndY = targetWordTextView.getTop() + targetWordTextView.getHeight();
 
         while (y >= targetWordTextView.getTop() - 100 && y <= targetWordEndY + 100) {
@@ -230,11 +229,11 @@ public class SynonymSniperActivity extends AppCompatActivity {
             uid = auth.getCurrentUser().getUid();
         } else {
             Log.e("Firestore", "No authenticated user found.");
-            return; // Exit if no user is logged in
+            return;
         }
 
         FirebaseFirestore db = FirebaseFirestore.getInstance();
-        String gameMode = "synonymSniper"; // Set the game mode to "synonymSniper"
+        String gameMode = "synonymSniper";
 
         db.collection("userProgress").document(uid).get()
                 .addOnCompleteListener(task -> {
@@ -258,7 +257,7 @@ public class SynonymSniperActivity extends AppCompatActivity {
                             }
                         }
 
-                        // Prepare data for the game mode
+
                         Map<String, Object> gameModeData = new HashMap<>();
                         gameModeData.put("best_score", bestScore);
                         gameModeData.put("worst_score", worstScore);
@@ -279,10 +278,9 @@ public class SynonymSniperActivity extends AppCompatActivity {
 
 
     private void endGame() {
-        // Update user progress with the final score
+
         updateUserProgressSynonymSniper(score);
 
-        // Show the game over dialog with the score
         new AlertDialog.Builder(this)
                 .setTitle("Game Over")
                 .setMessage("Your Score: " + score)

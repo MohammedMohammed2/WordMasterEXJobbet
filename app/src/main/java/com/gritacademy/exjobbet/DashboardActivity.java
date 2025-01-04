@@ -69,12 +69,12 @@ public class DashboardActivity extends AppCompatActivity implements NavigationVi
         if (currentUser != null) {
             String userId = currentUser.getUid();
 
-            // Access header views
+
             NavigationView navigationView = findViewById(R.id.nav_view);
             TextView headerUserName = navigationView.getHeaderView(0).findViewById(R.id.nav_header_user_name);
             TextView headerEmail = navigationView.getHeaderView(0).findViewById(R.id.nav_header_email);
 
-            // Set email in header
+
             headerEmail.setText(currentUser.getEmail());
 
             // Fetch username and display
@@ -102,7 +102,7 @@ public class DashboardActivity extends AppCompatActivity implements NavigationVi
     private void loadUserScore(String userId) {
         LinearLayout gameModeContainer = findViewById(R.id.gameModeContainer);
 
-        // Clear existing game mode data to prevent duplication
+
         gameModeContainer.removeAllViews();
 
         db.collection("userProgress").document(userId)
@@ -117,7 +117,7 @@ public class DashboardActivity extends AppCompatActivity implements NavigationVi
                                 Long bestScore = (Long) gameModeData.get("best_score");
                                 Long worstScore = (Long) gameModeData.get("worst_score");
 
-                                // Dynamically add a row for this game mode
+
                                 addGameModeRow(gameMode, bestScore, worstScore, gameModeContainer);
                             }
                         }
@@ -183,7 +183,7 @@ public class DashboardActivity extends AppCompatActivity implements NavigationVi
                     if (totalWords == 0) {
                         progressBar.setProgress(0);
                         progressLabelTextView.setText("Progress: 0%");
-                        return; // No flashcards, exit early
+                        return;
                     }
 
                     // Fetch user progress from leaderboard

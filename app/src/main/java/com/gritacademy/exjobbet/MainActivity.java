@@ -57,9 +57,8 @@ public class MainActivity extends AppCompatActivity {
         mAuth.signInWithEmailAndPassword(email, password)
                 .addOnCompleteListener(this, task -> {
                     if (task.isSuccessful()) {
-                        // Sign-in success
                         Toast.makeText(MainActivity.this, "Login Successful", Toast.LENGTH_SHORT).show();
-                        navigateToDashboard();  // Navigate to your main screen (e.g., Dashboard)
+                        navigateToDashboard();
                     } else {
                         Toast.makeText(MainActivity.this, "Authentication Failed", Toast.LENGTH_SHORT).show();
                     }
@@ -68,7 +67,7 @@ public class MainActivity extends AppCompatActivity {
 
     private void navigateToDashboard() {
 
-        Intent intent = new Intent(MainActivity.this, DashboardActivity.class);  // Replace with the actual main screen
+        Intent intent = new Intent(MainActivity.this, DashboardActivity.class);
         startActivity(intent);
         finish();  // Prevent going back to the login screen
     }
